@@ -32,7 +32,7 @@ Given a biomedical text, identify and classify named entities into two categorie
 
 | Split | Source | Examples |
 |---|---|---|
-| Evaluation & baseline training | BC5CDR (`tner/bc5cdr`) | 5,228 train / 5,865 test |
+| Evaluation and baseline training | BC5CDR (tner/bc5cdr) | 5,228 train / 5,865 test |
 | Synthetic training | Generated via Qwen2.5-3B-Instruct | 100 / 500 / 800 per prompt |
 
 BC5CDR contains 1,500 PubMed abstracts manually annotated with Chemical and Disease mentions.
@@ -53,9 +53,9 @@ BC5CDR contains 1,500 PubMed abstracts manually annotated with Chemical and Dise
 
 | Corpus | Prompt type |
 |---|---|
-| ZS-800 | Zero-shot: instructions + entity definitions |
-| FSA-800 | Few-shot A: instructions + isolated entity examples |
-| FSB-800 | Few-shot B: instructions + full annotated BC5CDR sentence |
+| ZS-800 | Zero-shot: instructions and entity definitions |
+| FSA-800 | Few-shot A: instructions and isolated entity examples |
+| FSB-800 | Few-shot B: instructions and full annotated BC5CDR sentence |
 
 ---
 
@@ -81,9 +81,68 @@ Key findings:
 
 | Role | Model |
 |---|---|
-| NER fine-tuning | BioBERT `dmis-lab/biobert-base-cased-v1.2` |
+| NER fine-tuning | BioBERT dmis-lab/biobert-base-cased-v1.2 |
 | Synthetic data generation | Qwen2.5-3B-Instruct (local GPU) |
 
 ---
 
 ## Repository Structure
+
+    biomedical-ner-synthetic-data/
+    |
+    |-- README.md
+    |-- llmcreated-vs-annotated-data-bioner.ipynb
+    |
+    |-- corpus/
+    |   |-- corpus_fewshot_b_100.json
+    |   |-- corpus_fewshot_b_500.json
+    |   |-- corpus_fewshot_b_800.json
+    |   |-- corpus_zeroshot_800.json
+    |   |-- corpus_fewshot_a_800.json
+    |
+    |-- results/
+    |   |-- resultados_finales.csv
+    |   |-- resultados_graficos.png
+    |   |-- comparativa_corpus.png
+    |   |-- confusion_matrix.png
+    |
+    |-- report/
+        |-- milicua_MDT_report.pdf
+
+---
+
+## Environment
+
+- **Platform:** Kaggle (GPU P100) for training and Google Colab (T4 GPU) for generation
+- **Key libraries:** transformers, datasets, seqeval, torch
+
+To install dependencies:
+
+    pip install transformers datasets seqeval
+
+---
+
+## Generation Pipeline
+
+    Qwen2.5-3B-Instruct (local GPU)
+            |
+            v instruct prompting (ZS / FSA / FSB)
+            |
+            v JSON output: {text, entities}
+            |
+            v automatic IOB2 conversion
+            |
+            v synthetic corpus (.json)
+            |
+            v BioBERT fine-tuning
+            |
+            v evaluation on BC5CDR test set
+
+Note on generation: Gemini 2.0 Flash API and HuggingFace Inference API (Qwen2.5-72B) were tested but discarded due to rate limits and credit exhaustion. Local generation with Qwen2.5-3B-Instruct was adopted as the final approach.
+
+---
+
+## References
+
+- Li et al. (2016). BioCreative V CDR task corpus. Database.
+- Lee et al. (2020). BioBERT: a pre-trained biomedical language representation model. Bioinformatics.
